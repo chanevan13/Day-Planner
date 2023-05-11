@@ -1,24 +1,62 @@
-// Wrap all code that interacts with the DOM in a call to jQuery to ensure that
-// the code isn't run until the browser has finished rendering all the elements
-// in the html.
 $(function () {
-    document.addEventListener
-    // TODO: Add a listener for click events on the save button. This code should
-    // use the id in the containing time-block as a key to save the user input in
-    // local storage. HINT: What does `this` reference in the click listener
-    // function? How can DOM traversal be used to get the "hour-x" id of the
-    // time-block containing the button that was clicked? How might the id be
-    // useful when saving the description in local storage?
-    //
-    // TODO: Add code to apply the past, present, or future class to each time
-    // block by comparing the id to the current hour. HINTS: How can the id
-    // attribute of each time-block be used to conditionally add or remove the
-    // past, present, and future classes? How can Day.js be used to get the
-    // current hour in 24-hour time?
-    //
-    // TODO: Add code to get any user input that was saved in localStorage and set
-    // the values of the corresponding textarea elements. HINT: How can the id
-    // attribute of each time-block be used to do this?
-    //
-    // TODO: Add code to display the current date in the header of the page.
-});
+    // Display the current date in the header
+    function displayCurrentDate() {
+      $("#currentDay").text(dayjs().format('MMMM D, YYYY'));
+    }
+  
+    // Create the time blocks for standard business hours
+    function createTimeBlocks() {
+      var currentHour = dayjs().hour();
+  
+      for (var hour = 9; hour <= 17; hour++) {
+        var timeBlockEl = $("<div>").addClass("time-block").attr("id", "hour-" + hour);
+        var rowEl = $("<div>").addClass("row");
+        var hourEl = $("<div>").addClass("hour col-1").text(dayjs(hour, "H").format("hA"));
+        var descriptionEl = $("<textarea>").addClass("description col-10");
+  
+        // Set the color-coding for each time block(work in progress I need to change Ids in html)
+        if (hour < currentHour) {
+          descriptionEl.addClass("past");
+        } else if (hour === currentHour) {
+          descriptionEl.addClass("present");
+        } else {
+          descriptionEl.addClass("future");
+        }
+  
+        var saveBtnEl = $("<button>").addClass("saveBtn col-1").html('<i class="fas fa-save"></i>');
+  
+        rowEl.append(hourEl, descriptionEl, saveBtnEl);
+        timeBlockEl.append(rowEl);
+        $(".container").append(timeBlockEl);
+      }
+    }
+  
+    // Save the event text in local storage when the save button is clicked and will stay if refreshed 
+    function saveEvent() {
+      var timeBlockEl = $(this).closest(".time-block");
+      var userInput = timeBlockEl.find(".description").val();
+      var timeBlockId = timeBlockEl.attr("id");
+      localStorage.setItem(timeBlockId, userInput);
+    }
+  
+    // Load the saved events from local storage
+    function loadEvents() {
+      $(".time-block").each(function() {
+        var timeBlockId = $(this).attr("id");
+        var savedUserInput = localStorage.getItem(timeBlockId);
+        if (savedUserInput) {
+          $(this).find(".description").val(savedUserInput);
+        }
+      });
+    }
+  
+    // Call the necessary functions on page load
+    displayCurrentDate();
+    createTimeBlocks();
+    loadEvents();
+  
+    // Event delegation for the save button click event
+    $(document).on("click", ".saveBtn", saveEvent);
+  });
+
+  
